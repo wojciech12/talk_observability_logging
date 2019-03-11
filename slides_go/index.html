@@ -1,0 +1,806 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Observability 2: logging</title>
+
+		<!-- bootstrap -->
+		<link rel="stylesheet" href="ext/bootstrap-4.0.0-beta/bootstrap.min.css">
+
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/white.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<style>
+			.reveal section img {
+				background-color:white;
+				border:0;
+				box-shadow: 0 0 0 0;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h3 style="text-transform: none !important;">Logging for golang microservices?<br />EFK?</h1>
+						<!-- <br />How to design the metrics? -->
+					<img src="img/efk/Fluentd_square.svg" width="20%" />
+					<img src="img/efk/logo-elastic-elasticsearch-lt.svg" width="30%" />
+					<img src="img/efk/logo-elastic-kibana-lt.svg" width="20%" />
+
+					<h6><small>W<span style="text-transform: lowercase;">ojciech</span> B<span style="text-transform: lowercase;">arczyński</span> - H<span style="text-transform: lowercase;">ypatos.ai</span> (SMACC.<span style="text-transform: lowercase;">io</span>) | <a href="https://www.linkedin.com/in/wojciechbarczynski/">LI</a> | <a href="https://twitter.com/wbarczynski">T<span style="text-transform: lowercase;">witter</span></a> | 13 M<span style="text-transform: lowercase;">arch</span> 2019</small></h6>
+				</section>
+
+				<section>
+					<h3>About me</h3>
+					<p><ul>
+						<li>Head of Engineering - Hypatos.ai/smacc.io (FinTech/AI)</li>
+						<li>Before:<br />System Engineer && Developer Lyke (RocketInternet)</li>
+						<li>Looking:<br />Tools for efficent teams</li>
+					</ul></p>
+				</section>
+
+				<section>
+					<h3>Point of view</h3>
+
+					<p><ul>
+							<li>Software Developer</li>
+							<li>startups && fast-moving environment</li>
+							<li>Infra and platform should just work</li>
+							<li>Infra and platform ~ invisible</li>
+						</ul></p>
+				</section>
+
+				<section>
+					<h3>My Goal</h3>
+
+					<p><ul>
+						<li>Do not forget to start with monitoring</li>
+						<li>What are the logging frameworks for Golang?</li>
+						<li>What is the best strategy?</li>
+					</ul></p>
+				</section>
+
+				<section>
+				<h4>Start with monitoring</h4>
+				<ul>
+					<li>Check my previous talks <a href="https://github.com/wojciech12/talk_monitoring_with_prometheus">wojciech12/talk_monitoring_with_prometheus</a></li>
+					<li>Peter Bourgon's talk on <br/> <a href="https://peter.bourgon.org/go-for-industrial-programming/">Go for Industrial Programming</a></li>
+				</ul>
+				</section>
+
+				<section>
+					<h3>Why?</h3>
+					<h4>Monolit ;) </h4>
+					<img src="img/rubber_duck_monolit.jpg" width="70%">
+				</section>
+
+				<section>
+					<h3>Why?</h3>
+					<h4>Microservices ;) </h4>
+					<img src="img/rubber_duck_microservices.jpg" width="70%">
+				</section>
+
+				<section>
+					<h4>Observability</h4>
+					<ul>
+					<li>Monitoring</li>
+					<li>Logging</li>
+					<li>Tracing</li>
+				</ul>
+				</section>
+
+				<section>
+					<h4>Observability</h4>
+<img src="img/observability_capex_vs_opex_from_golang_prod_blog.png" width="80%" />
+
+<small><a href="https://peter.bourgon.org/go-for-industrial-programming/">Go for Industrial Programming by Peter Bourgon</a></small>
+</section>
+
+				<section>
+					<h4>Centralized Logging</h4>
+					<ul>
+						<li>Debugging tool</li>
+						<li>Post-mortem</li>
+						<li>Finding the needle</li>
+						<li>! High TCO</li>
+					</ul>
+					<p><small>Notice: you can get a long way with <code>grep</code></small></p>
+				</section>
+
+				<section>
+					<h4>Logging</h4>
+					<ul>
+						<li>Structured</li> 
+						<li>Unstructured</li>
+					</ul>
+				</section>
+
+				<section>
+					<h4>Logging</h4>
+					<ul>
+						<li>Stream of discrete events</li> 
+						<!--
+						https://peter.bourgon.org/go-for-industrial-programming/
+						 -->
+						<li>Best: structured at the caller site</li>
+						<li>12factorapps: push on stdout</li>
+					</ul>
+				</section>
+
+<!-- https://github.com/justwatchcom/elasticsearch_exporter -->
+
+				<!--
+https://peter.bourgon.org/go-for-industrial-programming/
+
+Logs are streams of discrete events reported at full fidelity to a collection system, for later analysis, reporting, and debugging. Good logs are structured and permit flexible post-hoc manipulation.
+
+There are lots of great logging options in Go these days. Good logging libraries are oriented around a logger interface, rather than a concrete logger object. They treat loggers as dependencies, avoiding package global state. And they enforce structured logging at callsites.
+
+Logs are abstract streams, not concrete files, so avoid loggers that write or rotate files on disk; that’s the responsibility of another process, or your orchestration platform. And logging can quickly dominate runtime costs of a system, so be careful and judicious in how you produce and emit logs. Capture everything relevant in the request path, but do so thoughtfully, using patterns like decorators or middlewares.
+				-->
+
+				<!-- section>
+					<h4>Metric</h4>
+
+					<table class="table">
+						 <thead>
+							 <tr>
+								 <th style="text-align: center;">Name</th>
+								 <th style="text-align: center;">Label</th>
+								 <th style="text-align: center;">Value</th>
+							 </tr>
+						 </thead>
+						 <tbody>
+							 <tr class="success">
+								 <td>traefik_requests_total</td>
+								 <td>code="200", method="GET"</td>
+								 <td>3001</td>
+							 </tr>
+						 </tbody>
+					</table>
+				</section -->
+
+		<!--
+
+		-->		
+
+ 		<section data-markdown>
+			<script type="text/template">
+				### Logging
+
+Golang library:
+
+- [pkg/log](https://golang.org/pkg/log/)
+- [logrus](https://github.com/sirupsen/logrus)
+- [uber-go/zap](https://github.com/uber-go/zap)
+
+					</script>
+				</section>
+
+				<section>
+					<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
+<pre><code class="golang" data-trim="" width="100%">package main
+
+import (
+	"log"
+	"fmt"
+)
+
+func main() {
+	log.Println("Hello World!")
+	log.Fatal("Buum!")
+	fmt.Println("You will not see me!")
+}</code></pre>
+<pre><code class="golang" data-trim="" width="100%">
+2009/11/10 23:00:00 Hello World!
+2009/11/10 23:00:00 Buum!
+Program exited: status 1.
+</code></pre>
+				</section>
+
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
+
+- very minimalistic
+- you print log and move on
+- if an error, handle it XOR bubble up!
+- XOR die <code>Fatalf</code>, <code>Errorf</code>!
+
+<p><small>See <a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Dave Cheney's blog post on logging</a></small></p>
+			</script>
+		</section>
+
+	 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
+
+<pre><code class="golang" data-trim="" width="100%">err := somethingHard()
+if err != nil {
+        log.Error("oops, something was too hard", err)
+        return err // what is this, Java ?
+}</code></pre>
+
+<p><small>From <a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Dave Cheney's blog post on logging</a></small></p>
+			</script>
+		</section>
+
+	 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
+
+<pre><code class="golang" data-trim="" width="100%">err := somethingHard()
+if err != nil {
+        log.Error("oops, something was too hard", err)
+        return err // what is this, Java ?
+}</code></pre>
+
+<p><small>From <a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Dave Cheney's blog post on logging</a></small></p>
+			</script>
+		</section>
+
+	 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
+
+<pre><code class="golang" data-trim="" width="100%">if err := planA(); err != nil {
+        log.Infof("could't open the foo file, continuing with plan b: %v",
+        	err)
+        planB()
+}</code></pre>
+
+<p><small>From <a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Dave Cheney's blog post on logging</a></small></p>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
+
+<pre><code class="golang" data-trim="" width="100%">const (
+        Ldate         = 1 << iota     // the date in the local time zone: 2009/01/23
+        Ltime                         // the time in the local time zone: 01:23:23
+        Lmicroseconds                 // microsecond resolution: 01:23:23.123123.  assumes Ltime.
+        Llongfile                     // full file name and line number: /a/b/c/d.go:23
+        Lshortfile                    // final file name element and line number: d.go:23. overrides Llongfile
+        LUTC                          // if Ldate or Ltime is set, use UTC rather than the local time zone
+        LstdFlags     = Ldate | Ltime // initial values for the standard logger
+)</code></pre>
+			</script>
+		</section>
+
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
+
+<pre><code class="golang" data-trim="" width="100%">package main
+import (
+        "log"
+        "os"
+)
+func main() {
+        f, err := os.OpenFile("filename", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+        if err != nil {
+                log.Fatal(err)
+        }   
+        defer f.Close()
+        log.SetOutput(f)
+        log.Println("Hellow World!")
+}</code></pre>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4>E<span style="text-transform: lowercase;">rror levels?</span></h4>
+
+<pre><code class="golang" data-trim="" width="100%">package main
+import (
+        "log"
+        "os"
+)
+func main() {
+        f, err := os.OpenFile("filename",
+        	os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+        if err != nil {
+                log.Fatal(err)
+        }   
+        defer f.Close()
+        log.SetOutput(f)
+        log.Println("Hellow World!")
+}</code></pre>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+
+<pre><code class="golang" data-trim="" width="100%">package main
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	var logInfo *log.Logger
+	logInfo = log.New(os.Stdout,
+		"INFO: ",
+		log.Ltime|log.Lshortfile)
+
+	logInfo.Println("Good to know!")
+}</code></pre>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">sirupsen/logrus</span></h3>
+
+- formatters
+- log level: <code>Trace,Debug,Info,Error</code>
+- log and die: <code>Fatal, Panic</code>
+- fields for the structed json logging
+
+and more, e.g., hooks, support for tests
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">sirupsen/logrus</span></h3>
+
+<pre><code class="go" data-trim="" width="100%">package main
+
+import (
+  "os"
+  log "github.com/sirupsen/logrus"
+)
+
+func init() {
+  // Log as JSON instead of the default ASCII formatter.
+  log.SetFormatter(&log.JSONFormatter{})
+
+  // Output to stdout instead of the default stderr
+  // Can be any io.Writer, see below for File example
+  log.SetOutput(os.Stdout)
+
+  // Only log the warning severity or above.
+  log.SetLevel(log.WarnLevel)
+}</code></pre>
+
+<p><small style="font-size:8px">https://github.com/sirupsen/logrus</small></p>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">sirupsen/logrus</span></h3>
+
+
+<pre><code class="go" data-trim="" width="100%">package main
+
+import (
+  "os"
+  log "github.com/sirupsen/logrus"
+)
+
+func init() {
+  // Log as JSON instead of the default ASCII formatter.
+  log.SetFormatter(&log.JSONFormatter{})
+
+  // Output to stdout instead of the default stderr
+  // Can be any io.Writer, see below for File example
+  log.SetOutput(os.Stdout)
+
+  // Only log the warning severity or above.
+  log.SetLevel(log.WarnLevel)
+}</code></pre>
+
+<p><small style="font-size:8px">https://github.com/sirupsen/logrus</small></p>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">sirupsen/logrus</span></h3>
+
+<pre><code class="go" data-trim="" width="100%">func main() {
+  log.WithFields(log.Fields{
+    "animal": "walrus",
+    "size":   10,
+  }).Info("A group of walrus emerges from the ocean")
+
+  log.WithFields(log.Fields{
+    "omg":    true,
+    "number": 122,
+  }).Warn("The group's number increased tremendously!")
+
+  log.WithFields(log.Fields{
+    "omg":    true,
+    "number": 100,
+  }).Fatal("The ice breaks!")
+
+  // A common pattern is to re-use fields between logging statements by re-using
+  // the logrus.Entry returned from WithFields()
+  contextLogger := log.WithFields(log.Fields{
+    "common": "this is a common field",
+    "other": "I also should be logged always",
+  })
+
+  contextLogger.Info("I'll be logged with common and other field")
+  contextLogger.Info("Me too")
+}</code></pre>
+
+<p><small style="font-size:8px">https://github.com/sirupsen/logrus</small></p>
+			</script>
+		</section>
+
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">sirupsen/logrus</span></h3>
+
+<pre><code class="go" data-trim="" width="100%">package main
+
+import (
+  "os"
+  "github.com/sirupsen/logrus"
+)
+
+var log = logrus.New()
+
+func main() {
+  log.Out = os.Stdout
+
+  log.WithFields(logrus.Fields{
+    "animal": "walrus",
+    "size":   10,
+  }).Info("A group of walrus emerges")
+}</code></pre>
+
+<p><small style="font-size:8px">https://github.com/sirupsen/logrus</small></p>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">uber-go/zap</span></h4>
+
+- fast speed - less CPU nad less allocations
+- less handy
+			</script>
+		</section>
+
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">uber-go/zap</span></h4>
+
+<pre><code class="golang" data-trim="" width="100%">logger, _ := zap.NewProduction()
+defer logger.Sync() // flushes buffer, if any
+sugar := logger.Sugar()
+sugar.Infow("failed to fetch URL",
+  // Structured context as loosely typed key-value pairs.
+  "url", url,
+  "attempt", 3,
+  "backoff", time.Second,
+)
+sugar.Infof("Failed to fetch URL: %s", url)</code></pre>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">uber-go/zap</span></h4>
+
+<pre><code class="go" data-trim="" width="100%">logger, _ := zap.NewProduction()
+defer logger.Sync()
+logger.Info("failed to fetch URL",
+  // Structured context as strongly typed Field values.
+  zap.String("url", url),
+  zap.Int("attempt", 3),
+  zap.Duration("backoff", time.Second),
+)</code></pre>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4>Recommendation</h4>
+
+- logurus
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4>Best practises</h4>
+
+- Do not log or create a Log in Gorountine.
+- Use asynchronous libraries.
+- Use all possible severity levels with caution.
+- Stdout
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4>Best practises</h4>
+
+Logging hints as an opportunity<br />to add more metrics for monitoring
+			</script>
+		</section>
+
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h4>Logging Events != Business Events</h4>
+
+- Logging frameworks are OK if you lose data
+- if you go for ES, ES is not designed to be your primary storage
+			</script>
+		</section>
+
+
+		<!-- section data-markdown>
+					<script type="text/template">
+						## RED
+
+						<table class="table">
+							 <tbody>
+								 <tr>
+									 <td>**R**ate</td>
+									 <td>How busy is your service?</td>
+								 </tr>
+								 <tr>
+									 <td>**E**rror</td>
+									 <td>Errors</td>
+								 </tr>
+								 <tr>
+									 <td>**D**uration </td>
+									 <td>What is the latency of my service?</td>
+								 </tr>
+							 </tbody>
+						 </table>
+<center><small> <a href="https://twitter.com/i/web/status/852341680946544640">Tom Wilkie's guideline for instrumenting applications</a>.</small></center>
+					</script>
+		</section -->
+
+
+	<section>
+		<h3>ELK stack</h3>
+		<ul>
+			<li>Fluentd - collect</li>
+			<li>Elasticsearch - store</li>
+			<li>Kibana - visualize</li>
+		</ul>
+	</section>
+
+
+
+	<section data-markdown>
+		<script type="text/template" width="100%">
+#### F<span style="text-transform: lowercase;">luentd</span>
+
+- lightweight
+- configuration for tranforming and routing logs
+- out-of-the-box integration with Kubernetes
+		</script>
+	</section>
+
+				<section data-markdown>
+					<script type="text/template">
+#### E<span style="text-transform: lowercase;">lasticsearch</span>
+
+- scalable storage
+- search engine
+- easy to scale
+- quite robust, but it might lose data
+				</script>
+			</section>
+
+				<section data-markdown>
+					<script type="text/template">
+## K<span style="text-transform: lowercase;">ibana</span>
+
+- good tool
+- still always feel slow if not on a big machine [1]
+
+<p><small>[1] TODO: measure it</small></p>
+				</script>
+			</section>
+
+
+				<section data-markdown>
+					<script type="text/template">
+## K<span style="text-transform: lowercase;">ibana and alerts.. no</span>
+
+For alerting: run elastcsearch queries from prometheus-elasticsearch exporter.
+
+<p><small>See a <a href="https://kuther.net/blog/prometheus-run-queries-against-elasticsearch-and-turn-it-metrics-and-alerts">blog post from kuther.net</a></small></p>
+				</script>
+			</section>
+
+
+
+				<section data-markdown>
+					<script type="text/template">
+						# DEMO
+					</script>
+				</section>
+
+				<!-- section data-markdown>
+					<script type="text/template">
+					#### Histogram
+					<code>traefik_duration_seconds_bucket<br />{method="GET,code="200"}</code>
+
+					<table class="table">
+						 <tbody>
+							<tr>
+								 <td>{le="0.1"}</td>
+								 <td>2229</td>
+							</tr>
+
+							<tr>
+								 <td>{le="0.3"}</td>
+								 <td>107</td>
+							</tr>
+							<tr>
+								 <td>{le="1.2"}</td>
+								 <td>100</td>
+							 </tr>
+
+							<tr>
+								 <td>{le="5"}</td>
+								 <td>4</td>
+							</tr>
+							<tr>
+								 <td>{le="+Inf"}</td>
+								 <td>2</td>
+							</tr>
+							<tr>
+								<td>_sum</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>_count</td>
+								<td>2342</td>
+							</tr>
+						 </tbody>
+					</table>
+
+					</script>
+				</section -->
+
+
+				<section data-markdown>
+					<script type="text/template">
+#### Demo: Simple REST service
+
+<pre><code>                                          ---------------
+                                         |    Kibana     |
+	                                      ---------------
+                                                 |
+     -----------         ---------        ---------------
+    |    App    | ----> | Fluentd | ---> | ElasticSearch |
+    |           |       |         |      |               |
+     -----------         ---------        ---------------</code></pre>
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+#### Demo:
+
+- <a target="_blank" href="http://127.0.0.1:8080/hello">http://127.0.0.1:8080/hello</a> - service
+- <a target="_blank" href="http://127.0.0.1:5601">http://127.0.0.1:5601</a> - Kibana
+- <a target="_blank" href="http://127.0.0.1:9200">http://127.0.0.1:9200</a> - ElasticSearch
+					</script>
+				</section>
+
+
+				<section data-markdown>
+					<script type="text/template">
+#### Demo
+
+<pre><code class="bash" data-trim="" width="100%">☁  demo ⚡ make start
+☁  demo ⚡ docker ps
+CONTAINER ID        IMAGE                           PORTS                                                              NAMES
+74021b1bb310        httpd                           0.0.0.0:80->80/tcp                                                 talk-observability-log_app_1
+4a461f90d5c5        talk-observability-log_fluentd  5140/tcp, 127.0.0.1:24224->24224/tcp, 127.0.0.1:24224->24224/udp   talk-observability-log_fluentd_1
+4be4dbba931b        kibana:6.6.1                    0.0.0.0:5601->5601/tcp                                             talk-observability-log_kibana_1
+342e290e1afd        elasticsearch:6.6.1             0.0.0.0:9200->9200/tcp, 0.0.0.0:9300->9300/tcp                     talk-observability-log_elasticsearch_1
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+<h3>Demo: generate calls</h3>
+<pre><code class="bash" data-trim="" width="100%">
+☁  demo	 ⚡ make srv_wrk_random
+</code></pre>
+
+<p><small>With error injection</small></p>
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+### Demo
+
+Everything Included:
+
+- One command start with docker-compose
+- Fluentd config
+- Sample webservice
+					</script>
+				</section>
+
+				<section>
+					<h3>Summary</h3>
+					<ul>
+						<li>Monitoring saves your time</li>
+						<li>Debugging helps when things go south</li>
+						<li>Checking logs == debuging vs having tests</li>
+					</ul>
+				</section>
+
+			<section data-background="img/smacc_header_IT_source.jpg" data-background-repeat="" data-background-size="100%" data-background-position="bottom" style="position: relative; top:0">
+				<h1>Thank you</h1>
+				<h5><span style="text-transform: lowercase;">ps.</span> W<span style="text-transform: lowercase;">e are hiring: </span>TESTER/QA, FRONT-DEV, PM</h5>
+			</section>
+
+			<!--
+				BACKUP SLIDES
+			-->
+			<section data-background="img/smacc_header_IT_source.jpg" data-background-repeat="" data-background-size="100%" data-background-position="bottom" style="position: relative; top:0">
+				<h1>Backup Slides</h1>
+			</section>
+
+			<section>
+				<h2>Fluentd + K8S = &lt;3</h2>
+				<p>More in one of the next talks</p>
+			</section>
+
+			</div>
+		</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
