@@ -16,11 +16,11 @@ services:
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     volumes:
-      - ./elasticsearch/data:/usr/share/elasticsearch/data:rw
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+#    ulimits:
+#      memlock:
+#        soft: -1
+#        hard: -1
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -40,7 +40,4 @@ services:
       driver: "fluentd"
       options:
         fluentd-address: localhost:24224
-        fluentd-async-connect: 'true'
-        fluentd-retry-wait: '1s'
-        fluentd-max-retries: '3'
         tag: httpd.access
