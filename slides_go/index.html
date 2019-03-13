@@ -14,7 +14,7 @@
 		<link rel="stylesheet" href="css/theme/white.css">
 
 		<!-- Theme used for syntax highlighting of code -->
-		<!-- link rel="stylesheet" href="lib/css/zenburn.css" -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
 
 		<!-- Printing and PDF exports -->
 		<script>
@@ -336,16 +336,13 @@ func main() {
 <h3><span style="text-transform: lowercase;">pkg/log</span></h3>
 
 <pre><code class="golang" data-trim="" width="100%">package main
-
 import (
 	"log"
 	"os"
 )
 
 func main() {
-
 	var logInfo *log.Logger
-
 	logInfo = log.New(os.Stdout,
 		"INFO: ",
 		log.Ltime|log.Lshortfile)
@@ -391,7 +388,7 @@ func init() {
   log.SetLevel(log.WarnLevel)
 }</code></pre>
 
-<p><small>https://github.com/sirupsen/logrus</small></p>
+<p><small style="font-size:8px">https://github.com/sirupsen/logrus</small></p>
 			</script>
 		</section>
 
@@ -419,14 +416,13 @@ func init() {
   log.SetLevel(log.WarnLevel)
 }</code></pre>
 
-<p><small>https://github.com/sirupsen/logrus</small></p>
+<p><small style="font-size:8px">https://github.com/sirupsen/logrus</small></p>
 			</script>
 		</section>
 
  		<section data-markdown>
 			<script type="text/template">
 <h3><span style="text-transform: lowercase;">sirupsen/logrus</span></h3>
-
 
 <pre><code class="go" data-trim="" width="100%">func main() {
   log.WithFields(log.Fields{
@@ -455,7 +451,7 @@ func init() {
   contextLogger.Info("Me too")
 }</code></pre>
 
-<p><small>https://github.com/sirupsen/logrus</small></p>
+<p><small style="font-size:8px">https://github.com/sirupsen/logrus</small></p>
 			</script>
 		</section>
 
@@ -464,7 +460,6 @@ func init() {
 			<script type="text/template">
 <h3><span style="text-transform: lowercase;">sirupsen/logrus</span></h3>
 
-
 <pre><code class="go" data-trim="" width="100%">package main
 
 import (
@@ -472,22 +467,53 @@ import (
   "github.com/sirupsen/logrus"
 )
 
-// Create a new instance of the logger.
 var log = logrus.New()
 
 func main() {
-  // a difference
   log.Out = os.Stdout
 
   log.WithFields(logrus.Fields{
     "animal": "walrus",
     "size":   10,
-  }).Info("A group of walrus emerges from the ocean")
+  }).Info("A group of walrus emerges")
 }</code></pre>
 
-<p><small>https://github.com/sirupsen/logrus</small></p>
+<p><small style="font-size:8px">https://github.com/sirupsen/logrus</small></p>
 			</script>
 		</section>
+
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">uber-go/zap</span></h3>
+
+- fast speed
+- less handy
+			</script>
+		</section>
+
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">uber-go/zap</span></h3>
+
+<pre><code class="golang" data-trim="" width="100%">logger, _ := zap.NewProduction()
+defer logger.Sync() // flushes buffer, if any
+sugar := logger.Sugar()
+sugar.Infow("failed to fetch URL",
+  // Structured context as loosely typed key-value pairs.
+  "url", url,
+  "attempt", 3,
+  "backoff", time.Second,
+)
+sugar.Infof("Failed to fetch URL: %s", url)</code></pre>
+			</script>
+		</section>
+
+
+
+
+
 
 
 
