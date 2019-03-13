@@ -114,7 +114,7 @@
 </section>
 
 				<section>
-					<h3>Centralized Logging</h3>
+					<h4>Centralized Logging</h4>
 					<ul>
 						<li>Debugging tool</li>
 						<li>Post-mortem</li>
@@ -125,7 +125,7 @@
 				</section>
 
 				<section>
-					<h3>Logging</h3>
+					<h4>Logging</h4>
 					<ul>
 						<li>Structured</li> 
 						<li>Unstructured</li>
@@ -133,7 +133,7 @@
 				</section>
 
 				<section>
-					<h3>Logging</h3>
+					<h4>Logging</h4>
 					<ul>
 						<li>Stream of discrete events</li> 
 						<!--
@@ -183,7 +183,7 @@ Logs are abstract streams, not concrete files, so avoid loggers that write or ro
 
  		<section data-markdown>
 			<script type="text/template">
-				## Logging
+				### Logging
 
 Golang library:
 
@@ -195,7 +195,7 @@ Golang library:
 				</section>
 
 				<section>
-					<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+					<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
 <pre><code class="golang" data-trim="" width="100%">package main
 
 import (
@@ -218,7 +218,7 @@ Program exited: status 1.
 
  		<section data-markdown>
 			<script type="text/template">
-<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
 
 - very minimalistic
 - you print log and move on
@@ -231,7 +231,7 @@ Program exited: status 1.
 
 	 		<section data-markdown>
 			<script type="text/template">
-<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
 
 <pre><code class="golang" data-trim="" width="100%">err := somethingHard()
 if err != nil {
@@ -245,7 +245,7 @@ if err != nil {
 
 	 		<section data-markdown>
 			<script type="text/template">
-<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
 
 <pre><code class="golang" data-trim="" width="100%">err := somethingHard()
 if err != nil {
@@ -259,7 +259,7 @@ if err != nil {
 
 	 		<section data-markdown>
 			<script type="text/template">
-<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
 
 <pre><code class="golang" data-trim="" width="100%">if err := planA(); err != nil {
         log.Infof("could't open the foo file, continuing with plan b: %v",
@@ -273,7 +273,7 @@ if err != nil {
 
  		<section data-markdown>
 			<script type="text/template">
-<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
 
 <pre><code class="golang" data-trim="" width="100%">const (
         Ldate         = 1 << iota     // the date in the local time zone: 2009/01/23
@@ -290,7 +290,7 @@ if err != nil {
 
  		<section data-markdown>
 			<script type="text/template">
-<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+<h4><span style="text-transform: lowercase;">pkg/log</span></h4>
 
 <pre><code class="golang" data-trim="" width="100%">package main
 import (
@@ -311,7 +311,7 @@ func main() {
 
  		<section data-markdown>
 			<script type="text/template">
-<h3>Error levels - <span style="text-transform: lowercase;">pkg/log</span></h3>
+<h4>E<span style="text-transform: lowercase;">rror levels?</span></h4>
 
 <pre><code class="golang" data-trim="" width="100%">package main
 import (
@@ -482,12 +482,11 @@ func main() {
 			</script>
 		</section>
 
-
  		<section data-markdown>
 			<script type="text/template">
-<h3><span style="text-transform: lowercase;">uber-go/zap</span></h3>
+<h4><span style="text-transform: lowercase;">uber-go/zap</span></h4>
 
-- fast speed
+- fast speed - less CPU nad less allocations
 - less handy
 			</script>
 		</section>
@@ -495,7 +494,7 @@ func main() {
 
  		<section data-markdown>
 			<script type="text/template">
-<h3><span style="text-transform: lowercase;">uber-go/zap</span></h3>
+<h4><span style="text-transform: lowercase;">uber-go/zap</span></h4>
 
 <pre><code class="golang" data-trim="" width="100%">logger, _ := zap.NewProduction()
 defer logger.Sync() // flushes buffer, if any
@@ -511,6 +510,20 @@ sugar.Infof("Failed to fetch URL: %s", url)</code></pre>
 		</section>
 
 
+ 		<section data-markdown>
+			<script type="text/template">
+<h4><span style="text-transform: lowercase;">uber-go/zap</span></h4>
+
+<pre><code class="go" data-trim="" width="100%">logger, _ := zap.NewProduction()
+defer logger.Sync()
+logger.Info("failed to fetch URL",
+  // Structured context as strongly typed Field values.
+  zap.String("url", url),
+  zap.Int("attempt", 3),
+  zap.Duration("backoff", time.Second),
+)</code></pre>
+			</script>
+		</section>
 
 
 
