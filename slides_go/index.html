@@ -119,18 +119,42 @@
 						<li>Debugging tool</li>
 						<li>Post-mortem</li>
 						<li>Finding the needle</li>
+						<li>! High TCO</li>
+					</ul>
+					<p><small>Notice: you can get a long way with <code>grep</code></small></p>
+				</section>
+
+				<section>
+					<h3>Logging</h3>
+					<ul>
+						<li>Structured</li> 
+						<li>Unstructured</li>
 					</ul>
 				</section>
 
 				<section>
 					<h3>Logging</h3>
 					<ul>
-						<li>Aggregations</li>
-						<li>Tags</li>
-						<li>Visualizations</li>
+						<li>Stream of discrete events</li> 
+						<!--
+						https://peter.bourgon.org/go-for-industrial-programming/
+						 -->
+						<li>Best: structured at the caller site</li>
+						<li>12factorapps: push on stdout</li>
 					</ul>
-					<!-- https://github.com/justwatchcom/elasticsearch_exporter -->
 				</section>
+
+<!-- https://github.com/justwatchcom/elasticsearch_exporter -->
+
+				<!--
+https://peter.bourgon.org/go-for-industrial-programming/
+
+Logs are streams of discrete events reported at full fidelity to a collection system, for later analysis, reporting, and debugging. Good logs are structured and permit flexible post-hoc manipulation.
+
+There are lots of great logging options in Go these days. Good logging libraries are oriented around a logger interface, rather than a concrete logger object. They treat loggers as dependencies, avoiding package global state. And they enforce structured logging at callsites.
+
+Logs are abstract streams, not concrete files, so avoid loggers that write or rotate files on disk; that’s the responsibility of another process, or your orchestration platform. And logging can quickly dominate runtime costs of a system, so be careful and judicious in how you produce and emit logs. Capture everything relevant in the request path, but do so thoughtfully, using patterns like decorators or middlewares.
+				-->
 
 				<!-- section>
 					<h4>Metric</h4>
@@ -153,6 +177,10 @@
 					</table>
 				</section -->
 
+		<!--
+
+		-->		
+
  		<section data-markdown>
 			<script type="text/template">
 				## Logging
@@ -166,15 +194,123 @@ Golang library:
 				</section>
 
 				<section>
-					<h3>Logging</h3>
+					<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+<pre><code class="golang" data-trim="" width="100%">package main
+
+import (
+	"log"
+	"fmt"
+)
+
+func main() {
+	log.Println("Hello World!")
+	log.Fatal("Buum!")
+	fmt.Println("You will not see me!")
+}</code></pre>
+<pre><code class="golang" data-trim="" width="100%">
+2009/11/10 23:00:00 Hello World!
+2009/11/10 23:00:00 Buum!
+Program exited: status 1.
+</code></pre>
 				</section>
 
 
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+
+- very minimalistic
+- you print log and go on
+- OR die <code>Fatalf</code>, <code>Errorf</code>!
+
+<p><small>See <a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Dave Cheney's blog post on logging</a></small></p>
+			</script>
+
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+
+<pre><code class="golang" data-trim="" width="100%">const (
+        Ldate         = 1 << iota     // the date in the local time zone: 2009/01/23
+        Ltime                         // the time in the local time zone: 01:23:23
+        Lmicroseconds                 // microsecond resolution: 01:23:23.123123.  assumes Ltime.
+        Llongfile                     // full file name and line number: /a/b/c/d.go:23
+        Lshortfile                    // final file name element and line number: d.go:23. overrides Llongfile
+        LUTC                          // if Ldate or Ltime is set, use UTC rather than the local time zone
+        LstdFlags     = Ldate | Ltime // initial values for the standard logger
+)</code></pre>
+			</script>
+		</section>
 
 
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
 
+<pre><code class="golang" data-trim="" width="100%">package main
+import (
+        "log"
+        "os"
+)
+func main() {
+        f, err := os.OpenFile("filename", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+        if err != nil {
+                log.Fatal(err)
+        }   
+        defer f.Close()
+        log.SetOutput(f)
+        log.Println("Hellow World!")
+}</code></pre>
+			</script>
+		</section>
 
+ 		<section data-markdown>
+			<script type="text/template">
+<h3>Error levels - <span style="text-transform: lowercase;">pkg/log</span></h3>
 
+<pre><code class="golang" data-trim="" width="100%">package main
+import (
+        "log"
+        "os"
+)
+func main() {
+        f, err := os.OpenFile("filename",
+        	os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+        if err != nil {
+                log.Fatal(err)
+        }   
+        defer f.Close()
+        log.SetOutput(f)
+        log.Println("Hellow World!")
+}</code></pre>
+			</script>
+		</section>
+
+ 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+
+<pre><code class="golang" data-trim="" width="100%">package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+
+	var logInfo *log.Logger
+
+	logInfo = log.New(os.Stdout,
+		"INFO: ",
+		log.Ltime|log.Lshortfile)
+
+	logInfo.Println("Good to know!")
+}</code></pre>
+			</script>
+		</section>
 
 				<section>
 					<h3>Monitoring</h3>
