@@ -8,7 +8,6 @@ services:
       - "elasticsearch"
     ports:
       - "24224:24224"
-      - '5140:5140'
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.6.1
     environment:
@@ -16,6 +15,8 @@ services:
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data:rw
     ulimits:
       memlock:
         soft: -1
