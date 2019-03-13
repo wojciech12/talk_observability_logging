@@ -1,27 +1,22 @@
-# docker network create net
 version: '3'
 services:
   fluentd:
     build: ./fluentd
-    networks:
-      - nw-01
     volumes:
       - ./fluentd/conf:/fluentd/etc
-    depends_on:
+    links:
       - "elasticsearch"
     ports:
       - "24224:24224/udp"
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.6.1
-    networks:
-      - nw-01
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     volumes:
-      - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/data:/usr/share/elasticsearch/data:rw
     ulimits:
       memlock:
         soft: -1
@@ -33,18 +28,16 @@ services:
     image: docker.elastic.co/kibana/kibana:6.6.1
     networks:
       - nw-01
-    depends_on:
+    links:
       - "elasticsearch"
     ports:
       - "5601:5601"
   app:
     image: httpd
-    networks:
-      - nw-01
     ports:
       - "80:80"
-    depends_on:
-      - fluentd
+    links:
+      - "fluentd"
     logging:
       driver: "fluentd"
       options:
@@ -53,6 +46,3 @@ services:
         fluentd-retry-wait: '1s'
         fluentd-max-retries: '3'
         tag: httpd.access
-networks:
-  nw-01:
-    external: true
