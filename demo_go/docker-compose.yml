@@ -8,6 +8,7 @@ services:
       - "elasticsearch"
     ports:
       -  127.0.0.1:24224:24224
+      -  127.0.0.1:24224:24224/udp
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.6.1
     environment:
@@ -39,5 +40,5 @@ services:
     logging:
       driver: "fluentd"
       options:
-        fluentd-address: localhost:24224
+        fluentd-address: docker.for.mac.localhost:24224
         tag: httpd.access
