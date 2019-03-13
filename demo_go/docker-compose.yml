@@ -26,8 +26,6 @@ services:
       - "9300:9300"
   kibana:
     image: docker.elastic.co/kibana/kibana:6.6.1
-    networks:
-      - nw-01
     links:
       - "elasticsearch"
     ports:
