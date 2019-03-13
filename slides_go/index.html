@@ -220,12 +220,54 @@ Program exited: status 1.
 <h3><span style="text-transform: lowercase;">pkg/log</span></h3>
 
 - very minimalistic
-- you print log and go on
-- OR die <code>Fatalf</code>, <code>Errorf</code>!
+- you print log and move on
+- if an error, handle it XOR bubble up!
+- XOR die <code>Fatalf</code>, <code>Errorf</code>!
 
 <p><small>See <a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Dave Cheney's blog post on logging</a></small></p>
 			</script>
+		</section>
 
+	 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+
+<pre><code class="golang" data-trim="" width="100%">err := somethingHard()
+if err != nil {
+        log.Error("oops, something was too hard", err)
+        return err // what is this, Java ?
+}</code></pre>
+
+<p><small>From <a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Dave Cheney's blog post on logging</a></small></p>
+			</script>
+		</section>
+
+	 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+
+<pre><code class="golang" data-trim="" width="100%">err := somethingHard()
+if err != nil {
+        log.Error("oops, something was too hard", err)
+        return err // what is this, Java ?
+}</code></pre>
+
+<p><small>From <a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Dave Cheney's blog post on logging</a></small></p>
+			</script>
+		</section>
+
+	 		<section data-markdown>
+			<script type="text/template">
+<h3><span style="text-transform: lowercase;">pkg/log</span></h3>
+
+<pre><code class="golang" data-trim="" width="100%">if err := planA(); err != nil {
+        log.Infof("could't open the foo file, continuing with plan b: %v",
+        	err)
+        planB()
+}</code></pre>
+
+<p><small>From <a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Dave Cheney's blog post on logging</a></small></p>
+			</script>
 		</section>
 
  		<section data-markdown>
@@ -311,6 +353,14 @@ func main() {
 }</code></pre>
 			</script>
 		</section>
+
+
+ 		<section data-markdown>
+			<script type="text/template">
+
+			</script>
+		</section>
+
 
 				<section>
 					<h3>Monitoring</h3>
