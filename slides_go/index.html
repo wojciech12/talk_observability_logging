@@ -40,9 +40,11 @@
 				<section>
 					<h3 style="text-transform: none !important;">Logging for golang microservices?<br />EFK?</h1>
 						<!-- <br />How to design the metrics? -->
-					<img src="img/logo_prometheus.png" width="40%" />
+					<img src="img/efk/Fluentd_square.svg" width="20%" />
+					<img src="img/efk/logo-elastic-elasticsearch-lt.svg" width="30%" />
+					<img src="img/efk/logo-elastic-kibana-lt.svg" width="20%" />
 
-					<h6><small>W<span style="text-transform: lowercase;">ojciech</span> B<span style="text-transform: lowercase;">arczyński</span> - H<span style="text-transform: lowercase;">ypatos.ai</span> (SMACC.<span style="text-transform: lowercase;">io</span>) | <a href="https://www.linkedin.com/in/wojciechbarczynski/">LI</a> | <a href="https://twitter.com/wbarczynski">T<span style="text-transform: lowercase;">witter</span></a> | 13 F<span style="text-transform: lowercase;">ebruary</span> 2019</small></h6>
+					<h6><small>W<span style="text-transform: lowercase;">ojciech</span> B<span style="text-transform: lowercase;">arczyński</span> - H<span style="text-transform: lowercase;">ypatos.ai</span> (SMACC.<span style="text-transform: lowercase;">io</span>) | <a href="https://www.linkedin.com/in/wojciechbarczynski/">LI</a> | <a href="https://twitter.com/wbarczynski">T<span style="text-transform: lowercase;">witter</span></a> | 13 M<span style="text-transform: lowercase;">arch</span> 2019</small></h6>
 				</section>
 
 				<section>
@@ -76,10 +78,10 @@
 				</section>
 
 				<section>
-				<h4>Do not forget to start with monitoring<h4>
+				<h4>Start with monitoring</h4>
 				<ul>
-					<li>Check my previous talks <a href=""></a></li>
-					<li> </li>
+					<li>Check my previous talks <a href="https://github.com/wojciech12/talk_monitoring_with_prometheus">wojciech12/talk_monitoring_with_prometheus</a></li>
+					<li>Peter Bourgon's talk on <br/> <a href="https://peter.bourgon.org/go-for-industrial-programming/">Go for Industrial Programming</a></li>
 				</ul>
 				</section>
 
@@ -112,36 +114,25 @@
 </section>
 
 				<section>
-					<h3>Not a silver-bullet</h3>
-					<p>but:</p>
-					<ul>
-						<li>Easy to setup</li>
-						<li>Immediately value</li>
-					</ul>
-					<p>Suprisengly: the last one implemented</p>
-				</section>
-
-				<section>
 					<h3>Centralized Logging</h3>
 					<ul>
-						<li>Like a debugging vs testing</li>
-						<li>Usually much too late</li>
+						<li>Debugging tool</li>
 						<li>Post-mortem</li>
-						<li>Hard to find the needle</li>
+						<li>Finding the needle</li>
 					</ul>
 				</section>
 
 				<section>
-					<h3>Monitoring</h3>
+					<h3>Logging</h3>
 					<ul>
-						<li>Numbers</li>
-						<li>Trends</li>
-						<li>Dependencies</li>
-						<li>+ Actions</li>
+						<li>Aggregations</li>
+						<li>Tags</li>
+						<li>Visualizations</li>
 					</ul>
+					<!-- https://github.com/justwatchcom/elasticsearch_exporter -->
 				</section>
 
-				<section>
+				<!-- section>
 					<h4>Metric</h4>
 
 					<table class="table">
@@ -160,7 +151,30 @@
 							 </tr>
 						 </tbody>
 					</table>
+				</section -->
+
+ 		<section data-markdown>
+			<script type="text/template">
+				## Logging
+
+Golang library:
+
+- [logrus](https://github.com/sirupsen/logrus)
+- [uber-go/zap](https://github.com/uber-go/zap)
+- [pkg/log](https://golang.org/pkg/log/)
+					</script>
 				</section>
+
+				<section>
+					<h3>Logging</h3>
+				</section>
+
+
+
+
+
+
+
 
 				<section>
 					<h3>Monitoring</h3>
