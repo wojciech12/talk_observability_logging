@@ -11,6 +11,6 @@ RUN go list -m all
 # Statically link all c libraries by disabling cgo
 RUN CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' -o main .
 
-FROM phusion/baseimage
+FROM phusion/baseimage:master
 COPY --from=builder /talk_observability_logging/main .
 ENTRYPOINT ["/main"]

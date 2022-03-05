@@ -9,13 +9,7 @@ The three parts of the observability: monitoring, the first, but often the secon
 
 My recommendation, start with monitoring before investing in the centralized logging. Check my previous talk on [monitoring with Prometheus stack](https://github.com/wojciech12/talk_monitoring_with_prometheus).
 
-ps. [We are hiring in Warsaw and Berlin](https://github.com/hypatos/jobs).
-
-Questions? Feedback? Reach me at wb at hypatos.ai
-
 Helpful? A [LIKE to a LinkedIn post about this talk](https://www.linkedin.com/feed/update/urn:li:activity:6515660916732817408/) or a STAR to [this github repo](https://github.com/wojciech12/talk_observability_logging) would be really nice!
-
-
 
 ## Reference
 
